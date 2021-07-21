@@ -74,6 +74,7 @@ void Function::setEntryBB(BasicBlock *bb) { EntryBB = bb; }
 BasicBlock *Function::getEntryBB() const { return EntryBB; }
 
 void Function::addBasicBlock(const std::string &bbName, BasicBlock *bb) {
+  assert(!BasicBlocks.count(bbName) && "The basic block already exists");
   BasicBlocks[bbName] = bb;
 }
 BasicBlockList &Function::getBasicBlocks() const {
@@ -116,6 +117,7 @@ void Module::dump() const {
 }
 
 void Module::addFunction(const std::string &fnName, Function *f) {
+  assert(!Functions.count(fnName) && "The function already exists");
   Functions[fnName] = f;
 }
 
