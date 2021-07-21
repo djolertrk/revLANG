@@ -29,7 +29,9 @@ Steps to build the project:
     ModuleID: my-module.revLang
     
     def fn1():
+     ; Successors: bb.1(tag: true)
      bb.0:
+     ; Successors: bb.2(tag: false)
      bb.1:
      bb.2:
     
@@ -50,7 +52,9 @@ Steps to build the project:
     ModuleID: my-module.revLang
 
     def fn1():
+     ; Successors: bb.1(tag: true)
      bb.0:
+     ; Successors: bb.2(tag: false)
      bb.1:
      bb.2:
     
