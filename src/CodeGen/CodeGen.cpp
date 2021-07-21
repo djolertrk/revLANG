@@ -12,7 +12,22 @@
 BasicBlock::BasicBlock(std::string basicBlockID, Function *parent)
     : BasicBlockID(basicBlockID), Parent(parent) {}
 
+size_t BasicBlock::getNumOfSuccessors() const {
+  return Successors.size();
+}
+
+SuccessorBBList& BasicBlock::getSuccessors() const {
+  return const_cast<SuccessorBBList &>(Successors);
+}
+
 void BasicBlock::dump() const {
+  if (getNumOfSuccessors()) {
+    std::cout << ' ' << "; Successors: ";
+    auto successors = getSuccessors();
+    for (const auto& s : successors)
+      std::cout << s.second->getBBID() << "(tag: " << s.first << ") ";
+    std::cout << '\n';
+  }
   std::cout << ' ' << BasicBlockID << ":\n";
 }
 
@@ -35,6 +50,12 @@ const std::string& BasicBlock::getBBID() const { return BasicBlockID; }
 
 void BasicBlock::remove() {
   // TODO: implement this when the instructions are implemented.
+}
+
+void BasicBlock::addSuccessor(const std::string &tag, BasicBlock *bb) {
+  assert(!Successors.count(tag) && "The successor with the tag already exists");
+  assert(Parent == bb->getParent() && "The parent should be the same");
+  Successors[tag] = bb;
 }
 
 //

@@ -7,6 +7,7 @@ bool testBasicModuleCreationAndDeletion() {
   auto F = Function::create("f1", M.get());
   auto F1BB1 = BasicBlock::create("bb.0", F.get(), true);
   auto F1BB2 = BasicBlock::create("bb.1", F.get());
+  F1BB1->addSuccessor("true", F1BB2.get());
   auto F1BB3 = BasicBlock::create("bb.2", F.get());
 
   F->removeBasicBlock(std::move(F1BB3));

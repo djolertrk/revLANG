@@ -15,11 +15,17 @@ class Module;
 // is a red-black-tree), since it keeps the order. But, for
 // the purpose of this exercise I pay the O(logN) price, and I'll use
 // the std::map<> only.
+
+// This key represents the fn name and the value is the Function pointer.
 using FunctionList = std::map<std::string, Function *>;
+// This key represents the bb name and the value is the BasicBlock pointer.
 using BasicBlockList = std::map<std::string, BasicBlock *>;
+// This key represents the tag and the value is the BasicBlock pointer.
+using SuccessorBBList = std::map<std::string, BasicBlock *>;
 
 // This represents a basic block on the revLANG IR level.
 class BasicBlock {
+  SuccessorBBList Successors;
   std::string BasicBlockID;
   Function *Parent;
 
@@ -41,6 +47,11 @@ class BasicBlock {
 
   // This should do all the cleanups.
   void remove();
+
+  // Add successor bb.
+  void addSuccessor(const std::string &tag, BasicBlock *bb);
+  SuccessorBBList& getSuccessors() const;
+  size_t getNumOfSuccessors() const;
 };
 
 // This represents a function on the revLANG IR level. A function contains one

@@ -22,7 +22,9 @@ int main() {
   auto Func1 = Function::create("fn1", M.get());
   auto F1BB1 = BasicBlock::create("bb.0", Func1.get(), true);
   auto F1BB2 = BasicBlock::create("bb.1", Func1.get());
+  F1BB1->addSuccessor("true", F1BB2.get());
   auto F1BB3 = BasicBlock::create("bb.2", Func1.get());
+  F1BB2->addSuccessor("false", F1BB3.get());
 
   auto Func2 = Function::create("fn2", M.get());
   auto F2BB1 = BasicBlock::create("bb.0", Func2.get(), true);
