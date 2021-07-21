@@ -9,3 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # The src/ contains all the source code.
 add_subdirectory (src)
+
+# Enable testing of the project. This calls enable_testing().
+include(CTest)
+add_subdirectory(tests)
