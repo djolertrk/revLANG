@@ -67,7 +67,12 @@ Steps to build the project:
      bb.0:
      bb.1:
 
+The driver will produce `revLang-cfg.dot` file that will be used as an input for the `GraphViz`. We can create a PNG out of it as follows:
+
+    $ dot -Tpng revLang-cfg.dot -o example.png
+
 ## The source code
 
 The source code is divided into a few directories. The `src/` contains the code for a dummy driver (`revLANG.cpp`) for the API that has been implemented within `CodeGen/CodeGen.cpp`.
 There is also the `tests/` directory which has the implementation of the testing framework (I've used CTest infrastructure for it).
+The `examples/` contains `.dot` and `.png` files for the `GraphViz` example for the `Func5` from the `revLANG.cpp`.
