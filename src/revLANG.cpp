@@ -52,5 +52,19 @@ int main() {
   std::cout << "*** Module after the optimizations ***\n";
   M->dump();
 
+  // Create a function that will be used for the DOT.
+  auto Func5 = Function::create("foo", M.get());
+  auto F5BB1 = BasicBlock::create("entry", Func5.get(), true);
+  auto F5BB2 = BasicBlock::create("H", Func5.get());
+  F5BB1->addSuccessor("true", F5BB2.get());
+  auto F5BB3 = BasicBlock::create("I", Func5.get());
+  F5BB1->addSuccessor("false", F5BB3.get());
+  auto F5BB4 = BasicBlock::create("J", Func5.get());
+  F5BB2->addSuccessor("", F5BB4.get());
+  F5BB3->addSuccessor("", F5BB4.get());
+
+  // Print the function in terms of DOT.
+  Func5->printCFGAsDOT("revLang-cfg.dot");
+
   return 0;
 }

@@ -23,5 +23,7 @@ int main()
   if (!testBasicModuleCreationAndDeletion())
     return 1;
 
+  // TODO: add a test for DOT file creation.
+
   return 0;
 }

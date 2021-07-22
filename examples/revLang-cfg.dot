@@ -1,0 +1,6 @@
+digraph foo {
+  entry -> I[ label = "false"];
+  entry -> H[ label = "true"];
+  I -> J[ label = ""];
+  H -> J[ label = ""];
+}

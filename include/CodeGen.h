@@ -93,6 +93,9 @@ class Function {
 
   // This removes the BB from the function.
   void removeBasicBlock(std::unique_ptr<BasicBlock> bb);
+
+  // This prints .dot file that represents the function.
+  void printCFGAsDOT(const std::string& filename) const;
 };
 
 // This class represents a Module for a revLANG compilation unit. It is a top

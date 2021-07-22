@@ -3,6 +3,7 @@
 #include "CodeGen.h"
 
 #include <cassert>
+#include <fstream>
 #include <iostream>
 
 //
@@ -120,6 +121,33 @@ void Function::removeBasicBlock(std::unique_ptr<BasicBlock> bb) {
   //assert(bb->empty() && "Delete the instructions first");
   auto bbName = bb->getBBID();
   BasicBlocks.erase(bbName);
+}
+
+void Function::printCFGAsDOT(const std::string& filename) const {
+  // TODO: Check for errors, such as if the file was opened
+  // successfully, etc.
+
+  // Create and open the file.
+  std::ofstream MyDotFile(filename);
+
+  // We want the following shape of the file:
+  //   digraph fnName {
+  //     bb0 -> bb1 ["tag1"];
+  //     bb0 -> bb2 ["tag2"];
+  //     bb2 -> bb1;
+  //   }
+  MyDotFile << "digraph " << FunctionID << " {\n";
+  auto BBs = getBasicBlocks();
+  for (auto BB = BBs.rbegin(); BB != BBs.rend(); BB++) {
+    auto successors = BB->second->getSuccessors();
+    for (const auto& s : successors)
+      MyDotFile << "  " << BB->first << " -> " << s.second->getBBID()
+                << "[ label = \"" << s.first << "\"];\n";
+  }
+
+  MyDotFile << "}\n";
+  // Close the file.
+  MyDotFile.close();
 }
 
 //
