@@ -96,6 +96,13 @@ class Function {
 
   // This prints .dot file that represents the function.
   void printCFGAsDOT(const std::string& filename) const;
+
+  // Return true if the function is valid.
+  bool isValid() const;
+  // An DFS algorithm to traverse all the nodes from entry bb,
+  // by following the links (tags).
+  void traverse(BasicBlock *bb,
+    std::map<BasicBlock*, bool> &visited) const;
 };
 
 // This class represents a Module for a revLANG compilation unit. It is a top

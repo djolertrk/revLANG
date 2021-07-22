@@ -2,6 +2,7 @@
 
 #include "CodeGen.h"
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -148,6 +149,44 @@ void Function::printCFGAsDOT(const std::string& filename) const {
   MyDotFile << "}\n";
   // Close the file.
   MyDotFile.close();
+}
+
+void Function::traverse(BasicBlock *bb,
+                        std::map<BasicBlock *, bool> &visited) const {
+  visited[bb] = true;
+
+  auto successors = bb->getSuccessors();
+  for (const auto &s : successors) {
+    if (!visited[s.second])
+      traverse(s.second, visited);
+  }
+}
+
+bool Function::isValid() const {
+  // I) Function must have an entry bb.
+  if (!EntryBB)
+    return false;
+
+  // II) Each basic block is reachable from the entry point by traversing
+  // the links from a basic block to its successors.
+  // For this, I'll be using a simple DFS algorithm.
+
+  std::map<BasicBlock *, bool> visited;
+  auto BBs = getBasicBlocks();
+  for (auto BB = BBs.rbegin(); BB != BBs.rend(); BB++)
+    visited.insert({BB->second, false});
+  traverse(EntryBB, visited);
+  auto notVisittedBB =
+      std::find_if(visited.begin(), visited.end(),
+                   [](const auto &bb) { return bb.second == false; });
+  if (notVisittedBB != visited.end())
+    return false;
+
+  // III) Each basic block has, at most, one successor per tag.
+  // This is ensured by the assert() which will be triggered
+  // in non-release builds.
+
+  return true;
 }
 
 //
