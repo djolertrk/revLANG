@@ -26,46 +26,53 @@ Steps to build the project:
     $ build/bin/revLANG
     === revLang interpreter ===
     *** Module before the optimizations ***
+    *** Module before the optimizations ***
     ModuleID: my-module.revLang
     
+    var !0
+    var !1
+    var !2
+    
     def fn1():
-     ; Successors: bb.1(tag: true)
+     ; Successors: bb.1(tag: true) 
      bb.0:
-     ; Successors: bb.2(tag: false)
+        var !0 = ADD var !1, var !2
+     ; Successors: bb.2(tag: false) 
      bb.1:
+        LOAD var !0
      bb.2:
+        STORE var !1, var !2
     
     def fn2():
      bb.0:
      bb.1:
      bb.2:
-
+    
     def fn3():
      bb.0:
+        STORE var !1, var !2
      bb.1:
      bb.2:
-
+    
     def fn4():
       empty function
 
     *** Module after the optimizations ***
     ModuleID: my-module.revLang
-
+    
+    var !0
+    var !1
+    var !2
+    
     def fn1():
-     ; Successors: bb.1(tag: true)
+     ; Successors: bb.1(tag: true) 
      bb.0:
-     ; Successors: bb.2(tag: false)
+        var !0 = ADD var !1, var !2
+     ; Successors: bb.2(tag: false) 
      bb.1:
+        LOAD var !0
      bb.2:
-    
-    def fn2():
-     bb.0:
-     bb.1:
-     bb.2:
-    
-    def fn3():
-     bb.0:
-     bb.1:
+        STORE var !1, var !2
 
 The driver will produce `revLang-cfg.dot` file that will be used as an input for the `GraphViz`. We can create a PNG out of it as follows:
 
