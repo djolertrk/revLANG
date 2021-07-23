@@ -8,6 +8,89 @@
 #include <iostream>
 
 //
+// Implementation of the GlobalVariable class.
+//
+
+GlobalVariable::GlobalVariable(unsigned id, Module *parent) {
+  assert(id <= 4294967295 && "revLANG supports 2^32 variables only");
+  Parent = parent;
+  ID = id;
+}
+
+std::unique_ptr<GlobalVariable> GlobalVariable::create(unsigned id,
+                                           Module *parent) {
+  auto GV = std::make_unique<GlobalVariable>(id, parent);
+  parent->addGlobalVar(id, GV.get());
+  return GV;
+}
+
+void GlobalVariable::setParent(Module *parent) {
+  Parent = parent;
+}
+
+Module *GlobalVariable::getParent() const {
+  return Parent;
+}
+
+void GlobalVariable::dump() const {
+  std::cout << "var !" << ID << "\n";
+}
+
+//
+// Implementation of the Instructions classes.
+//
+
+Load::Load (OperandsTy& ops, BasicBlock *parent) {
+  assert(ops.size() == 1 && "Load must have 1 operand");
+  // Set up the parent fields.
+  Ops = ops;
+  Parent = parent;
+  OpCode = "LOAD";
+  Parent->addInstruction(this);
+}
+
+void Load::dump() const {
+  std::cout << "    ";
+  std::cout << OpCode << " ";
+  std::cout << "var !" << Ops[0]->getID() << '\n';
+}
+
+Store::Store (OperandsTy& ops, BasicBlock *parent) {
+  assert(ops.size() == 2 && "Store must have 2 operands");
+  // Set up the parent fields.
+  Ops = ops;
+  Parent = parent;
+  OpCode = "STORE";
+  Parent->addInstruction(this);
+}
+
+void Store::dump() const {
+  std::cout << "    ";
+  std::cout << OpCode << " ";
+  std::cout << "var !" << Ops[0]->getID() << ", "
+            << "var !" << Ops[1]->getID() << '\n';
+}
+
+Add::Add (OperandsTy& ops, BasicBlock *parent) {
+  assert(ops.size() >= 3 && "Add must have 3+ operands");
+  // Set up the parent fields.
+  Ops = ops;
+  Parent = parent;
+  OpCode = "ADD";
+  Parent->addInstruction(this);
+}
+
+void Add::dump() const {
+  std::cout << "    ";
+  std::cout << "var !" << Ops[0]->getID();
+  std::cout << " = " << OpCode << " ";
+  unsigned numOfOps = Ops.size();
+  for (int i = 1; i < numOfOps - 1; ++i)
+    std::cout << "var !" << Ops[i]->getID() << ", ";
+  std::cout << "var !" << Ops[numOfOps - 1]->getID() << '\n';
+}
+
+//
 // Implementation of the BasicBlock class.
 //
 
@@ -31,6 +114,10 @@ void BasicBlock::dump() const {
     std::cout << '\n';
   }
   std::cout << ' ' << BasicBlockID << ":\n";
+
+  auto instrs = getInstructions();
+  for (const auto *i : instrs)
+    i->dump();
 }
 
 // Could be used if we are changing the function (e.g. attributes,
@@ -50,14 +137,36 @@ std::unique_ptr<BasicBlock> BasicBlock::create(std::string basicBlockID,
 
 const std::string& BasicBlock::getBBID() const { return BasicBlockID; }
 
-void BasicBlock::remove() {
-  // TODO: implement this when the instructions are implemented.
+void BasicBlock::removeInstruction(std::unique_ptr<Instruction> instr) {
+  Instructions.erase(
+    std::remove(Instructions.begin(), Instructions.end(), instr.get()),
+    Instructions.end());
+}
+
+void BasicBlock::removeSuccessor(BasicBlock *bb) {
+  auto getBBAsSucc =
+      std::find_if(Successors.begin(), Successors.end(),
+                   [bb](const auto &BB) { return BB.second == bb; });
+  if (getBBAsSucc != Successors.end())
+    Successors.erase(getBBAsSucc->first);
 }
 
 void BasicBlock::addSuccessor(const std::string &tag, BasicBlock *bb) {
   assert(!Successors.count(tag) && "The successor with the tag already exists");
   assert(Parent == bb->getParent() && "The parent should be the same");
   Successors[tag] = bb;
+}
+
+void BasicBlock::addInstruction(Instruction *inst) {
+  Instructions.push_back(inst);
+}
+
+InstrustionList& BasicBlock::getInstructions() const {
+  return const_cast<InstrustionList&>(Instructions);
+}
+
+size_t BasicBlock::getNumOfInstrs() const {
+  return Instructions.size();
 }
 
 //
@@ -119,7 +228,13 @@ size_t Function::getNumberOfBBs() const { return BasicBlocks.size(); }
 const std::string& Function::getFnID() const { return FunctionID; }
 
 void Function::removeBasicBlock(std::unique_ptr<BasicBlock> bb) {
-  //assert(bb->empty() && "Delete the instructions first");
+  assert(!bb->getNumOfInstrs() && "Delete the instructions first");
+
+  // Avoid dangling ptrs by removing this bb from successor list
+  // if any.
+  for (auto& basibBlock : BasicBlocks)
+    basibBlock.second->removeSuccessor(bb.get());
+
   auto bbName = bb->getBBID();
   BasicBlocks.erase(bbName);
 }
@@ -198,6 +313,13 @@ Module::Module(std::string moduleID) : ModuleID(moduleID) {}
 void Module::dump() const {
   std::cout << "ModuleID: " << ModuleID << "\n\n";
 
+  // Print global vars.
+  auto GVs = getGlobalVars();
+  for (const auto &GV : GVs)
+    GV.second->dump();
+
+  std::cout << '\n';
+
   // Print functions.
   auto Fns = getFunctions();
   for (const auto &F : Fns)
@@ -214,6 +336,19 @@ FunctionList &Module::getFunctions() const {
   // the reference drops const qualifier, so we need explicit casting
   // here.
   return const_cast<FunctionList &>(Functions);
+}
+
+void Module::addGlobalVar(unsigned id, GlobalVariable *GV) {
+  assert(!GlobalVariables.count(id) && "The variable already exists");
+  GlobalVariables[id] = GV;
+}
+GlobalVarList& Module::getGlobalVars() const {
+  return const_cast<GlobalVarList &>(GlobalVariables);
+}
+
+GlobalVariable* Module::getVarWithID(unsigned id) const {
+  assert(GlobalVariables.count(id) && "The variable doesn't exist");
+  return const_cast<GlobalVarList&>(GlobalVariables)[id];
 }
 
 size_t Module::getNumberOfFns() const { return Functions.size(); }

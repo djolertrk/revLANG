@@ -41,13 +41,18 @@ bool testFunctionValidation3() {
 
 bool testBasicModuleCreationAndDeletion() {
   auto M = Module::create("m2.revLang");
+  auto GV1 = GlobalVariable::create(0, M.get());
   auto F = Function::create("f1", M.get());
   auto F1BB1 = BasicBlock::create("bb.0", F.get(), true);
   auto F1BB2 = BasicBlock::create("bb.1", F.get());
+  OperandsTy LoadOps{GV1.get()};
+  std::unique_ptr<Instruction> I1 =
+      std::make_unique<Load>(LoadOps, F1BB2.get());
   F1BB1->addSuccessor("true", F1BB2.get());
   auto F1BB3 = BasicBlock::create("bb.2", F.get());
 
   F->removeBasicBlock(std::move(F1BB3));
+  F1BB2->removeInstruction(std::move(I1));
   F->removeBasicBlock(std::move(F1BB2));
   F->removeBasicBlock(std::move(F1BB1));
   M->removeFunction(std::move(F));

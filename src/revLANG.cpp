@@ -19,12 +19,31 @@ int main() {
 
   // Create the module.
   auto M = Module::create("my-module.revLang");
+
+  auto GV1 = GlobalVariable::create(0, M.get());
+  auto GV2 = GlobalVariable::create(1, M.get());
+  auto GV3 = GlobalVariable::create(2, M.get());
+
   auto Func1 = Function::create("fn1", M.get());
   auto F1BB1 = BasicBlock::create("bb.0", Func1.get(), true);
+
+  OperandsTy AddOps{GV1.get(), GV2.get(), GV3.get()};
+  std::unique_ptr<Instruction> I1 =
+      std::make_unique<Add>(AddOps, F1BB1.get());
+
   auto F1BB2 = BasicBlock::create("bb.1", Func1.get());
   F1BB1->addSuccessor("true", F1BB2.get());
+
+  OperandsTy LoadOps{GV1.get()};
+  std::unique_ptr<Instruction> I2 =
+      std::make_unique<Load>(LoadOps, F1BB2.get());
+
   auto F1BB3 = BasicBlock::create("bb.2", Func1.get());
   F1BB2->addSuccessor("false", F1BB3.get());
+
+  OperandsTy StoreOps{GV2.get(), GV3.get()};
+  std::unique_ptr<Instruction> I3 =
+      std::make_unique<Store>(StoreOps, F1BB3.get());
 
   auto Func2 = Function::create("fn2", M.get());
   auto F2BB1 = BasicBlock::create("bb.0", Func2.get(), true);
@@ -33,6 +52,9 @@ int main() {
 
   auto Func3 = Function::create("fn3", M.get());
   auto F3BB1 = BasicBlock::create("bb.0", Func3.get(), true);
+  OperandsTy StoreOpsFunc3{GV2.get(), GV3.get()};
+  std::unique_ptr<Instruction> I4 =
+      std::make_unique<Store>(StoreOpsFunc3, F3BB1.get());
   auto F3BB2 = BasicBlock::create("bb.1", Func3.get());
   auto F3BB3 = BasicBlock::create("bb.2", Func3.get());
 
@@ -45,8 +67,18 @@ int main() {
   // This is an empty function, lets delete it.
   M->removeFunction(std::move(Func4));
 
-  // Delete the bb.
+  // Delete the fn2.
+  Func2->removeBasicBlock(std::move(F2BB1));
+  Func2->removeBasicBlock(std::move(F2BB2));
+  Func2->removeBasicBlock(std::move(F2BB3));
+  M->removeFunction(std::move(Func2));
+
+  // Delete the fn3.
+  F3BB1->removeInstruction(std::move(I4));
+  Func3->removeBasicBlock(std::move(F3BB1));
+  Func3->removeBasicBlock(std::move(F3BB2));
   Func3->removeBasicBlock(std::move(F3BB3));
+  M->removeFunction(std::move(Func3));
 
   // Print the module again.
   std::cout << "*** Module after the optimizations ***\n";
