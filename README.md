@@ -26,7 +26,6 @@ Steps to build the project:
     $ build/bin/revLANG
     === revLang interpreter ===
     *** Module before the optimizations ***
-    *** Module before the optimizations ***
     ModuleID: my-module.revLang
     
     var !0
